@@ -1,0 +1,48 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}EduPresence{% endblock %}</title>
+    <link rel="icon" type="image/png" href="{% static 'img/logo/logo.png' %}">
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+</head>
+<body>
+
+{% if user.is_authenticated %}
+<nav class="navbar">
+    <a class="navbar-brand" href="/admin_home/">
+        <img src="{% static 'img/logo/white-bg.png' %}" alt="EduPresence">
+    </a>
+
+    <ul class="navbar-links">
+        {% if user.is_staff %}
+        <li><a href="/admin_home/">Accueil</a></li>
+        <li><a href="/manage_teacher/">Enseignants</a></li>
+        <li><a href="/manage_student/">Étudiants</a></li>
+        <li><a href="/manage_classe/add/">+ Classe</a></li>
+        <li><a href="/attendance/session/">Présences</a></li>
+        <li><a href="/manage_teacher/" style="color:var(--primary);"><i class="fas fa-user-shield"></i> Comptes</a></li>
+        {% else %}
+        <li><a href="/teacher_home/{{ user.teacher.id }}/">Accueil</a></li>
+        <li><a href="/attendance/session/">Sessions</a></li>
+        {% endif %}
+    </ul>
+
+    <div class="navbar-user">
+        <strong>{{ user.username }}</strong>
+        <a href="/signout/" class="btn btn-outline btn-sm" style="color:#fff;border-color:rgba(255,255,255,.4);">
+            <i class="fas fa-sign-out-alt"></i> Déconnexion
+        </a>
+    </div>
+</nav>
+{% endif %}
+
+<div class="page-wrapper">
+    {% block content %}{% endblock %}
+</div>
+
+</body>
+</html>

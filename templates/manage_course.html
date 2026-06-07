@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cours: {{ classe.name }}</title>
+</head>
+<body>
+    { if user.is_authenticated and user.is_staff }
+    <header>
+        <h1>Page d' Admin</h1>
+        <div classe="welcome-admin">
+            <h2>Cours: {{ classe.name }}</h2>
+            <nav classe="navbar">
+                <ul>
+                    <li classe="dropdown">
+                        <a href="#"><i classe="fas fa-gear"></i></a>
+                        <ul classe="dropdown-menu">
+                            <li><a href="/manage_classe/{{ classe.id }}/delete">Supprimer le cours</a></li>
+                            <li><a href="/manage_classe/{{ classe.id }}/edit">Changer les enseignants</a></li>
+                            <li><a href="/manage_classe/{{ classe.id }}/export">Extracter le registre</a></li>
+                        </ul>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+    <section classe="main-dashboard">
+        <div classe="e1">
+            <div classe="head-dashboard">
+                <h2>Les heurs de ce classee</h2>
+                <a href="/manage_classe"><i classe="fas fa-plus"></i></a>
+            </div>
+            <div classe="table-responsive">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Nom d' Étudiant</th>
+                            <th>Abscences</th>
+                            <th>Presences</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for student in classe.students.all %}
+                        <tr>
+                            <td>{{ student.name }}</td>
+                            <td>
+                                {{ student.absence_count }}
+                            </td>
+                            <td>
+                                <i classe="fas fa-users"></i>
+                                <p>{{ student.presence_count }}</p>
+                            </td>
+                        </tr>
+                        {%% empty %}
+                        <tr>
+                            <td colspan="4">Aucun Etudiant enregistré dans ce cours.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <div classe="add_new">
+                <a href="/manage_classe/{{ classe.id }}/add_student"><i classe="fas fa-plus"></i> Ajouter un étudiant</a>
+            </div>
+        </div>
+    </section>
+
+    <section classe="main-dashboard">
+        <div classe="e2">
+            <div classe="head-dashboard">
+                <h2>Les Étudiants Enregistrés</h2>
+                <a href="/manage_classe"><i classe="fas fa-plus"></i></a>
+            </div>
+            <div classe="table-responsive">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Nom d' Étudiant</th>
+                            <th>Abscences</th>
+                            <th>Presences</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for student in classe.students.all %}
+                        <tr>
+                            <td>{{ student.name }}</td>
+                            <td>
+                                {{ student.absence_count }}
+                            </td>
+                            <td>
+                                <i classe="fas fa-users"></i>
+                                <p>{{ student.presence_count }}</p>
+                            </td>
+                        </tr>
+                        {%% empty %}
+                        <tr>
+                            <td colspan="4">Aucun Etudiant enregistré dans ce cours.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <div classe="add_new">
+                <a href="/manage_classe/{{ classe.id }}/add_student"><i classe="fas fa-plus"></i> Ajouter un étudiant</a>
+            </div>
+        </div>
+    </section>
+
+
+    { endif }
+
+</body>
+</html>

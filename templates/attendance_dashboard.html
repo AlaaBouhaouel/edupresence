@@ -1,0 +1,187 @@
+{% extends 'base.html' %}
+{% block title %}Dashboard - {{ session.classe.name }}{% endblock %}
+
+{% block content %}
+{% if user.is_authenticated %}
+
+<a href="/attendance/session/" class="back-link"><i class="fas fa-arrow-left"></i> Sessions</a>
+
+<div class="page-header-row">
+    <div class="page-header mb-0">
+        <h1>{{ session.classe.name }}</h1>
+        <p class="text-muted">{{ session.teacher.name }} - {{ session.date }}</p>
+    </div>
+    <div class="d-flex align-center gap-2">
+        <a href="/attendance/register/?class_id={{ session.classe.id }}&date={{ session.date|date:'Y-m-d' }}" class="btn btn-outline btn-sm">
+            <i class="fas fa-table"></i> Registre
+        </a>
+        {% if session.status == 'OPEN' %}
+        <span class="live-indicator"><span class="live-dot"></span> En cours</span>
+        <span class="badge badge-open">OUVERTE</span>
+        {% else %}
+        <span class="badge badge-closed">FERMEE</span>
+        {% endif %}
+    </div>
+</div>
+
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-value" id="present-count">{{ present_count }}</div>
+        <div class="stat-label">Presents</div>
+    </div>
+    <div class="stat-card" style="border-left-color:var(--danger)">
+        <div class="stat-value" id="absent-count">{{ absent_count }}</div>
+        <div class="stat-label">Absents</div>
+    </div>
+    <div class="stat-card" style="border-left-color:var(--black)">
+        <div class="stat-value">{{ total_count }}</div>
+        <div class="stat-label">Total</div>
+    </div>
+    <div class="stat-card" style="border-left-color:#f59e0b">
+        <div class="stat-value" id="scan-count">0</div>
+        <div class="stat-label">Scans recus</div>
+    </div>
+</div>
+
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
+    <div class="card">
+        <div class="card-header">
+            <h2><i class="fas fa-check-circle" style="color:var(--success)"></i> Presents</h2>
+        </div>
+        <div class="table-responsive">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Etudiant</th>
+                        <th>Heure</th>
+                        {% if can_edit %}<th></th>{% endif %}
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for p in present_students %}
+                    <tr>
+                        <td class="fw-bold">{{ p.student.name }}</td>
+                        <td class="text-muted">{{ p.timestamp|time:"H:i" }}</td>
+                        {% if can_edit %}
+                        <td>
+                            <form method="post" style="display:inline;">
+                                {% csrf_token %}
+                                <input type="hidden" name="action" value="mark_absent">
+                                <input type="hidden" name="student_id" value="{{ p.student.id }}">
+                                <button type="submit" class="btn btn-outline btn-sm">Marquer absent</button>
+                            </form>
+                        </td>
+                        {% endif %}
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="{% if can_edit %}3{% else %}2{% endif %}" class="text-muted" style="text-align:center;padding:24px;">
+                            En attente...
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <h2><i class="fas fa-times-circle" style="color:var(--danger)"></i> Absents</h2>
+        </div>
+        <div class="table-responsive">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Etudiant</th>
+                        {% if can_edit %}<th></th>{% endif %}
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for student in absent_students %}
+                    <tr>
+                        <td class="fw-bold">{{ student.name }}</td>
+                        {% if can_edit %}
+                        <td>
+                            <form method="post" style="display:inline;">
+                                {% csrf_token %}
+                                <input type="hidden" name="action" value="mark_present">
+                                <input type="hidden" name="student_id" value="{{ student.id }}">
+                                <button type="submit" class="btn btn-primary btn-sm">Marquer present</button>
+                            </form>
+                        </td>
+                        {% endif %}
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="{% if can_edit %}2{% else %}1{% endif %}" class="text-muted" style="text-align:center;padding:24px;">
+                            Tous presents
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-app.js";
+    import { getDatabase, ref, onValue, set } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-database.js";
+    const app = initializeApp({ databaseURL: "https://stc2024-d1ba8-default-rtdb.europe-west1.firebasedatabase.app/" });
+    const db = getDatabase(app);
+    const uidRef = ref(db, 'Attendance/uid');
+
+    let isProcessing = false;
+    let scanCount = 0;
+
+    onValue(uidRef, async (snapshot) => {
+        const uid = snapshot.val();
+        if (isProcessing) return;
+        if (!uid || uid === "") return;
+
+        isProcessing = true;
+        try {
+            const response = await fetch("/attendance/session/", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRFToken": getCookie("csrftoken")
+                },
+                body: JSON.stringify({ uid: uid })
+            });
+
+            if (response.ok) {
+                scanCount += 1;
+                document.getElementById('scan-count').textContent = scanCount;
+                await set(uidRef, "");
+                setTimeout(() => location.reload(), 250);
+            } else {
+                const errorBody = await response.text();
+                console.error("Backend error:", errorBody);
+            }
+        } catch (error) {
+            console.error("Send failed:", error);
+        } finally {
+            isProcessing = false;
+        }
+    });
+
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== "") {
+            const cookies = document.cookie.split(";");
+            for (let cookie of cookies) {
+                cookie = cookie.trim();
+                if (cookie.substring(0, name.length + 1) === name + "=") {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+</script>
+
+{% endif %}
+{% endblock %}

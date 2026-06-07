@@ -1,0 +1,172 @@
+{% extends 'base.html' %}
+{% block title %}Accueil Admin – EduPresence{% endblock %}
+
+{% block content %}
+{% if user.is_authenticated and user.is_staff %}
+
+<div class="page-header">
+    <h1>Tableau de bord</h1>
+    <p>Bienvenue, <strong>{{ user.username }}</strong></p>
+</div>
+
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-value">{{ students_count }}</div>
+        <div class="stat-label">Étudiants</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value">{{ teacher_count }}</div>
+        <div class="stat-label">Enseignants</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value">{{ classes_count }}</div>
+        <div class="stat-label">Classes</div>
+    </div>
+</div>
+
+<!-- Classes -->
+<div class="card">
+    <div class="card-header">
+        <h2><i class="fas fa-chalkboard"></i> Classes</h2>
+        <a href="/manage_classe/add/" class="btn btn-primary btn-sm">
+            <i class="fas fa-plus"></i> Nouvelle classe
+        </a>
+    </div>
+    <div class="table-responsive">
+        <table>
+            <thead>
+                <tr>
+                    <th>Nom</th>
+                    <th>Enseignants</th>
+                    <th>Étudiants</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for classe in classes %}
+                <tr>
+                    <td><a href="/manage_classe/{{ classe.id }}/" class="fw-bold">{{ classe.name }}</a></td>
+                    <td class="text-muted">
+                        {% for teacher in classe.teachers.all %}
+                            {{ teacher.name }}{% if not forloop.last %}, {% endif %}
+                        {% empty %}
+                            <span class="text-muted">—</span>
+                        {% endfor %}
+                    </td>
+                    <td><span class="badge badge-primary">{{ classe.enrollment_set.count }}</span></td>
+                    <td>
+                        <a href="/manage_classe/{{ classe.id }}/" class="btn btn-outline btn-sm btn-icon">
+                            <i class="fas fa-cog"></i>
+                        </a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="4" class="text-muted" style="text-align:center;padding:32px;">
+                        Aucune classe enregistrée.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Teachers -->
+<div class="card">
+    <div class="card-header">
+        <h2><i class="fas fa-user-tie"></i> Enseignants</h2>
+        <a href="/manage_teacher/add/" class="btn btn-primary btn-sm">
+            <i class="fas fa-plus"></i> Nouvel enseignant
+        </a>
+    </div>
+    <div class="table-responsive">
+        <table>
+            <thead>
+                <tr>
+                    <th>Nom</th>
+                    <th>Email</th>
+                    <th>Matière</th>
+                    <th>Classes</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for teacher in teachers %}
+                <tr>
+                    <td class="fw-bold">{{ teacher.name }}</td>
+                    <td class="text-muted">{{ teacher.email }}</td>
+                    <td>{{ teacher.matiere }}</td>
+                    <td><span class="badge badge-primary">{{ teacher.class_set.count }}</span></td>
+                    <td>
+                        <a href="/manage_teacher/{{ teacher.id }}/edit/" class="btn btn-outline btn-sm btn-icon">
+                            <i class="fas fa-edit"></i>
+                        </a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5" class="text-muted" style="text-align:center;padding:32px;">
+                        Aucun enseignant enregistré.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Students -->
+<div class="card">
+    <div class="card-header">
+        <h2><i class="fas fa-user-graduate"></i> Étudiants</h2>
+        <a href="/manage_student/add/" class="btn btn-primary btn-sm">
+            <i class="fas fa-plus"></i> Nouvel étudiant
+        </a>
+    </div>
+    <div class="table-responsive">
+        <table>
+            <thead>
+                <tr>
+                    <th>Nom</th>
+                    <th>Email</th>
+                    <th>Classe</th>
+
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for student in students %}
+                <tr>
+                    <td class="fw-bold">{{ student.name }}</td>
+                    <td class="text-muted">{{ student.email }}</td>
+                    <td>
+                        {% with student.enrollment_set.first as enroll %}
+                            {% if enroll %}
+                                <a href="/manage_classe/{{ enroll.classe.id }}/">{{ enroll.classe.name }}</a>
+                            {% else %}
+                                <span class="text-muted">—</span>
+                            {% endif %}
+                        {% endwith %}
+                    </td>
+
+                    <td>
+                        <a href="/manage_student/{{ student.id }}/edit/" class="btn btn-outline btn-sm btn-icon">
+                            <i class="fas fa-edit"></i>
+                        </a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5" class="text-muted" style="text-align:center;padding:32px;">
+                        Aucun étudiant enregistré.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% endif %}
+{% endblock %}

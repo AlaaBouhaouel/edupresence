@@ -1,0 +1,34 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Déconnexion – EduPresence</title>
+    <link rel="icon" type="image/png" href="{% static 'img/logo/logo.png' %}">
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+</head>
+<body>
+<div class="auth-wrapper">
+    <div class="auth-card" style="text-align:center;">
+
+        <div class="auth-logo">
+            <img src="{% static 'img/logo/dark-bg.png' %}" alt="EduPresence">
+        </div>
+
+        <div style="margin:24px 0 8px;">
+            <i class="fas fa-check-circle" style="font-size:2.5rem;color:var(--success);"></i>
+        </div>
+
+        <h2 style="margin-bottom:8px;">Déconnexion réussie</h2>
+        <p class="text-muted" style="margin-bottom:28px;">À bientôt sur EduPresence.</p>
+
+        <a href="/signin/" class="btn btn-primary" style="width:100%;justify-content:center;">
+            <i class="fas fa-sign-in-alt"></i> Se reconnecter
+        </a>
+
+    </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,104 @@
+{% extends 'base.html' %}
+{% block title %}Registre de Presence{% endblock %}
+
+{% block content %}
+{% if user.is_authenticated %}
+
+<a href="/attendance/session/" class="back-link"><i class="fas fa-arrow-left"></i> Sessions</a>
+
+<div class="page-header-row">
+    <div class="page-header mb-0">
+        <h1><i class="fas fa-table"></i> Registre Journalier</h1>
+        <p class="text-muted">Par classe et par jour</p>
+    </div>
+</div>
+
+<div class="card" style="margin-bottom:20px;">
+    <div class="card-body">
+        <form method="get" class="form-inline">
+            <select class="form-control" name="class_id" required>
+                {% for classe in classes %}
+                <option value="{{ classe.id }}" {% if selected_class and selected_class.id == classe.id %}selected{% endif %}>
+                    {{ classe.name }}
+                </option>
+                {% endfor %}
+            </select>
+            <input class="form-control" type="date" name="date" value="{{ selected_date|date:'Y-m-d' }}" required>
+            <button type="submit" class="btn btn-primary">Afficher</button>
+        </form>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h2>
+            {% if selected_class %}
+                {{ selected_class.name }} - {{ selected_date }}
+            {% else %}
+                Aucune classe disponible
+            {% endif %}
+        </h2>
+    </div>
+    {% if no_schedule_for_date %}
+    <div class="card-body" style="padding-top:0;">
+        <p class="text-muted" style="margin:0;">
+            Aucun enseignant planifie pour cette classe a cette date (jour sans horaire).
+        </p>
+    </div>
+    {% endif %}
+    <div class="table-responsive">
+        <table>
+            <thead>
+                <tr>
+                    <th>Etudiant</th>
+                    {% if session_columns %}
+                        {% for col in session_columns %}
+                        <th>
+                            {{ col.matiere }}
+                            <span class="text-muted">({{ col.teacher.name }})</span><br>
+                            <span class="text-muted">{{ col.time_label }}</span>
+                        </th>
+                        {% endfor %}
+                    {% else %}
+                    <th>Statut</th>
+                    {% endif %}
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in rows %}
+                <tr>
+                    <td class="fw-bold">{{ row.student.name }}</td>
+                    {% if session_columns %}
+                        {% for status in row.statuses %}
+                        <td>
+                            {% if status == 'present' %}
+                            <span class="badge badge-open">P</span>
+                            {% else %}
+                            <span class="badge badge-closed">A</span>
+                            {% endif %}
+                        </td>
+                        {% endfor %}
+                    {% else %}
+                    <td>
+                        {% if row.default_status == 'present' %}
+                        <span class="badge badge-open">P</span>
+                        {% else %}
+                        <span class="badge badge-closed">A</span>
+                        {% endif %}
+                    </td>
+                    {% endif %}
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="{% if session_columns %}{{ session_columns|length|add:'1' }}{% else %}2{% endif %}" class="text-muted" style="text-align:center;padding:24px;">
+                        Aucun etudiant pour cette classe/jour.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% endif %}
+{% endblock %}

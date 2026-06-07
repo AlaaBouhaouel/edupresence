@@ -1,0 +1,45 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# Virtual environments
+venv/
+.venv/
+env/
+.env/
+
+# Environment variables — never commit secrets
+.env
+.env.local
+.env.*.local
+
+# Django
+db.sqlite3
+staticfiles/
+media/
+
+# Firebase service account — contains admin credentials for your Firebase project
+serviceAccountKey.json
+firebase_credentials.json
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Coverage
+.coverage
+htmlcov/

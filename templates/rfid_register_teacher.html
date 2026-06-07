@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RFID - Enseignant</title>
+</head>
+<body>
+    {% if user.is_authenticated and user.is_staff %}
+    <header>
+        <h1>Enregistrement RFID</h1>
+        <a href="/manage_teacher/">← Retour</a>
+    </header>
+
+    <section>
+        <h2>Enseignant : {{ teacher.name }}</h2>
+        <p>Email : {{ teacher.email }}</p>
+        <p>Matière : {{ teacher.matiere }}</p>
+        {% if existing_card %}
+        <p>Carte actuelle : <strong>{{ existing_card.uid }}</strong> (assignée le {{ existing_card.assigned_at }})</p>
+        {% else %}
+        <p>Aucune carte assignée.</p>
+        {% endif %}
+    </section>
+
+    <section id="scan-section">
+        <button id="scan-btn" onclick="startScan()">Scanner une carte</button>
+        <p id="status-msg" style="display:none;">En attente du scan...</p>
+        <p id="uid-display" style="display:none;"></p>
+
+        <form id="confirm-form" method="post" style="display:none;">
+            {% csrf_token %}
+            <input type="hidden" name="uid" id="uid-input">
+            <button type="submit">Confirmer l'assignation</button>
+            <button type="button" onclick="cancelScan()">Annuler</button>
+        </form>
+    </section>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-app.js";
+        import { getDatabase, ref, onValue, off } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-database.js";
+
+        const firebaseConfig = {
+            databaseURL: "https://your-project-default-rtdb.firebaseio.com"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+        let registrationRef = null;
+
+        window.startScan = function () {
+            document.getElementById('scan-btn').disabled = true;
+            document.getElementById('status-msg').style.display = 'block';
+            document.getElementById('uid-display').style.display = 'none';
+            document.getElementById('confirm-form').style.display = 'none';
+
+            registrationRef = ref(db, 'registration/uid');
+            onValue(registrationRef, (snapshot) => {
+                const uid = snapshot.val();
+                if (uid) {
+                    document.getElementById('status-msg').style.display = 'none';
+                    document.getElementById('uid-display').textContent = 'UID détecté : ' + uid;
+                    document.getElementById('uid-display').style.display = 'block';
+                    document.getElementById('uid-input').value = uid;
+                    document.getElementById('confirm-form').style.display = 'block';
+                    off(registrationRef);
+                }
+            });
+        };
+
+        window.cancelScan = function () {
+            if (registrationRef) off(registrationRef);
+            document.getElementById('scan-btn').disabled = false;
+            document.getElementById('status-msg').style.display = 'none';
+            document.getElementById('uid-display').style.display = 'none';
+            document.getElementById('confirm-form').style.display = 'none';
+        };
+    </script>
+    {% endif %}
+</body>
+</html>

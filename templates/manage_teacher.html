@@ -1,0 +1,73 @@
+{% extends 'base.html' %}
+{% block title %}Enseignants – EduPresence{% endblock %}
+
+{% block content %}
+{% if user.is_authenticated and user.is_staff %}
+
+<div class="page-header-row">
+    <div class="page-header mb-0">
+        <h1><i class="fas fa-user-tie"></i> Enseignants</h1>
+    </div>
+    <a href="/manage_teacher/add/" class="btn btn-primary">
+        <i class="fas fa-plus"></i> Nouvel enseignant
+    </a>
+</div>
+
+<div class="card">
+    <div class="table-responsive">
+        <table>
+            <thead>
+                <tr>
+                    <th>UID</th><th>Nom</th><th>Email</th><th>Matière</th><th>Classes</th><th>Compte</th><th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for teacher in teachers %}
+                <tr>
+                    <td><code>{% if teacher.uid %}{{ teacher.uid }}{% else %}<span class="text-muted">—</span>{% endif %}</code></td>
+                    <td class="fw-bold">{{ teacher.name }}</td>
+                    <td class="text-muted">{{ teacher.email }}</td>
+                    <td>{{ teacher.matiere }}</td>
+                    <td><span class="badge badge-primary">{{ teacher.class_set.count }}</span></td>
+                    <td>
+                        {% if teacher.user %}
+                            <span class="badge badge-success"><i class="fas fa-check"></i> Actif</span>
+                            <br><small class="text-muted">{{ teacher.user.username }}</small>
+                        {% else %}
+                            <span class="badge badge-danger">Aucun</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <div class="d-flex gap-2">
+                            <a href="/manage_teacher/{{ teacher.id }}/account/"
+                               class="btn btn-sm btn-icon {% if teacher.user %}btn-outline{% else %}btn-primary{% endif %}"
+                               title="{% if teacher.user %}Réinitialiser le mot de passe{% else %}Créer un compte{% endif %}">
+                                <i class="fas fa-{% if teacher.user %}key{% else %}user-plus{% endif %}"></i>
+                            </a>
+                            <a href="/manage_teacher/{{ teacher.id }}/edit/" class="btn btn-outline btn-sm btn-icon" title="Modifier">
+                                <i class="fas fa-edit"></i>
+                            </a>
+                            <form method="post" action="/manage_teacher/{{ teacher.id }}/delete/" style="display:inline">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-danger btn-sm btn-icon"
+                                        onclick="return confirm('Supprimer {{ teacher.name }} ?')" title="Supprimer">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="7" style="text-align:center;padding:40px;" class="text-muted">
+                        Aucun enseignant enregistré.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% endif %}
+{% endblock %}

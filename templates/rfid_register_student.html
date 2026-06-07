@@ -1,0 +1,87 @@
+{% extends 'base.html' %}
+{% block title %}RFID – {{ student.name }}{% endblock %}
+
+{% block content %}
+{% if user.is_authenticated and user.is_staff %}
+
+<a href="/manage_student/" class="back-link"><i class="fas fa-arrow-left"></i> Retour</a>
+
+<div class="card" style="max-width:520px;">
+    <div class="card-header">
+        <h2><i class="fas fa-id-card"></i> Enregistrement RFID – Étudiant</h2>
+    </div>
+    <div class="card-body">
+        <p><strong>Étudiant :</strong> {{ student.name }}</p>
+        <p class="text-muted">{{ student.email }}</p>
+
+        {% if existing_card %}
+        <div class="alert alert-success" style="margin-top:12px;">
+            Carte actuelle : <strong>{{ existing_card.uid }}</strong>
+        </div>
+        {% endif %}
+
+        <div class="rfid-card" id="rfid-area">
+            <p id="idle-msg">Cliquez sur le bouton pour commencer le scan.</p>
+            <p id="scan-msg" style="display:none;">
+                <span class="scanning-pulse"></span> En attente de la carte RFID…
+            </p>
+            <div class="uid-display" id="uid-display" style="display:none;"></div>
+        </div>
+
+        <button id="scan-btn" class="btn btn-primary" onclick="startScan()" style="width:100%;justify-content:center;">
+            <i class="fas fa-wifi"></i> Scanner une carte
+        </button>
+
+        <form id="confirm-form" method="post" style="display:none;margin-top:16px;">
+            {% csrf_token %}
+            <input type="hidden" name="uid" id="uid-input">
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-primary" style="flex:1;justify-content:center;">
+                    <i class="fas fa-check"></i> Confirmer
+                </button>
+                <button type="button" class="btn btn-outline" onclick="cancelScan()">Annuler</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-app.js";
+    import { getDatabase, ref, onValue, off } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-database.js";
+    const app = initializeApp({ databaseURL: "https://test-6fed4-default-rtdb.europe-west1.firebasedatabase.app/" });
+    const db = getDatabase(app);
+    let regRef = null;
+
+    window.startScan = function () {
+        document.getElementById('scan-btn').disabled = true;
+        document.getElementById('idle-msg').style.display = 'none';
+        document.getElementById('scan-msg').style.display = 'block';
+        document.getElementById('uid-display').style.display = 'none';
+        document.getElementById('confirm-form').style.display = 'none';
+
+        regRef = ref(db, 'registration/uid');
+        onValue(regRef, snapshot => {
+            const uid = snapshot.val();
+            if (uid) {
+                document.getElementById('scan-msg').style.display = 'none';
+                document.getElementById('uid-display').textContent = uid;
+                document.getElementById('uid-display').style.display = 'block';
+                document.getElementById('uid-input').value = uid;
+                document.getElementById('confirm-form').style.display = 'block';
+                off(regRef);
+            }
+        });
+    };
+
+    window.cancelScan = function () {
+        if (regRef) off(regRef);
+        document.getElementById('scan-btn').disabled = false;
+        document.getElementById('idle-msg').style.display = 'block';
+        document.getElementById('scan-msg').style.display = 'none';
+        document.getElementById('uid-display').style.display = 'none';
+        document.getElementById('confirm-form').style.display = 'none';
+    };
+</script>
+
+{% endif %}
+{% endblock %}

@@ -1,0 +1,185 @@
+{% extends 'base.html' %}
+{% block title %}{{ classe.name }} – EduPresence{% endblock %}
+
+{% block content %}
+{% if user.is_authenticated and user.is_staff %}
+
+<a href="/admin_home/" class="back-link"><i class="fas fa-arrow-left"></i> Retour</a>
+
+<div class="page-header-row">
+    <div class="page-header mb-0">
+        <h1>{{ classe.name }}</h1>
+        <p class="text-muted">{{ classe.description }}</p>
+    </div>
+    <form method="post" action="/manage_classe/{{ classe.id }}/delete/">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-danger btn-sm"
+                onclick="return confirm('Supprimer la classe {{ classe.name }} ?')">
+            <i class="fas fa-trash"></i> Supprimer
+        </button>
+    </form>
+</div>
+{% if error_message %}
+<div class="card" style="margin-bottom:16px;border-left:4px solid var(--danger);">
+    <div class="card-body">
+        <p style="margin:0;color:var(--danger);font-weight:600;">{{ error_message }}</p>
+    </div>
+</div>
+{% endif %}
+
+<!-- Class info -->
+<div class="card">
+    <div class="card-header"><h2><i class="fas fa-info-circle"></i> Informations</h2></div>
+    <div class="card-body">
+        <form method="post">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="update_info">
+            <div class="form-row">
+                <div class="form-group mb-0">
+                    <label>Nom <span class="required">*</span></label>
+                    <input class="form-control" type="text" name="name" value="{{ classe.name }}" required>
+                </div>
+                <div class="form-group mb-0">
+                    <label>Description</label>
+                    <input class="form-control" type="text" name="description" value="{{ classe.description }}">
+                </div>
+                <div style="align-self:flex-end">
+                    <button type="submit" class="btn btn-primary">Enregistrer</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Teachers -->
+<div class="card">
+    <div class="card-header">
+        <h2><i class="fas fa-user-tie"></i> Enseignants &amp; Horaires</h2>
+    </div>
+    <div class="table-responsive">
+        <table>
+            <thead>
+                <tr>
+                    <th>Enseignant</th><th>Matière</th><th>Jour</th><th>De</th><th>À</th><th></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for schedule in schedules %}
+                <tr>
+                    <td class="fw-bold">{{ schedule.teacher.name }}</td>
+                    <td>{{ schedule.teacher.matiere }}</td>
+                    <td><span class="badge badge-primary">{{ schedule.get_day_display }}</span></td>
+                    <td>{{ schedule.start_time }}</td>
+                    <td>{{ schedule.end_time }}</td>
+                    <td>
+                        <form method="post" style="display:inline">
+                            {% csrf_token %}
+                            <input type="hidden" name="action" value="remove_teacher">
+                            <input type="hidden" name="teacher_id" value="{{ schedule.teacher.id }}">
+                            <input type="hidden" name="day" value="{{ schedule.day }}">
+                            <button type="submit" class="btn btn-danger btn-sm btn-icon"
+                                    onclick="return confirm('Retirer {{ schedule.teacher.name }} ?')">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="6" style="text-align:center;padding:24px;" class="text-muted">Aucun enseignant assigné.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% if available_teachers %}
+    <div class="card-body" style="border-top:1px solid var(--border);">
+        <p class="fw-bold" style="margin-bottom:12px;">Ajouter un enseignant</p>
+        <form method="post">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="add_teacher">
+            <div class="form-inline">
+                <select class="form-control" name="teacher_id" required>
+                    <option value="">Enseignant…</option>
+                    {% for teacher in available_teachers %}
+                    <option value="{{ teacher.id }}">{{ teacher.name }} ({{ teacher.matiere }})</option>
+                    {% endfor %}
+                </select>
+                <select class="form-control" name="day" required>
+                    <option value="">Jour…</option>
+                    {% for code, label in days %}
+                    <option value="{{ code }}">{{ label }}</option>
+                    {% endfor %}
+                </select>
+                <input class="form-control" type="time" name="start_time" placeholder="Début" required>
+                <input class="form-control" type="time" name="end_time" placeholder="Fin" required>
+                <button type="submit" class="btn btn-primary">Ajouter</button>
+            </div>
+        </form>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Students -->
+<div class="card">
+    <div class="card-header">
+        <h2><i class="fas fa-user-graduate"></i> Étudiants
+            <span class="badge badge-primary" style="margin-left:8px;">{{ students.count }}</span>
+        </h2>
+    </div>
+    <div class="table-responsive">
+        <table>
+            <thead>
+                <tr><th>Nom</th><th>Email</th><th>Présences</th><th>Absences</th><th></th></tr>
+            </thead>
+            <tbody>
+                {% for student in students %}
+                <tr>
+                    <td class="fw-bold">{{ student.name }}</td>
+                    <td class="text-muted">{{ student.email }}</td>
+                    <td><span class="badge badge-success">{{ student.presence_count }}</span></td>
+                    <td><span class="badge badge-danger">{{ student.absence_count }}</span></td>
+                    <td>
+                        <form method="post" style="display:inline">
+                            {% csrf_token %}
+                            <input type="hidden" name="action" value="remove_student">
+                            <input type="hidden" name="student_id" value="{{ student.id }}">
+                            <button type="submit" class="btn btn-danger btn-sm btn-icon"
+                                    onclick="return confirm('Retirer {{ student.name }} ?')">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="5" style="text-align:center;padding:24px;" class="text-muted">Aucun étudiant inscrit.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% if available_students %}
+    <div class="card-body" style="border-top:1px solid var(--border);">
+        <p class="fw-bold" style="margin-bottom:12px;">Inscrire un étudiant</p>
+        <form method="post">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="add_student">
+            <div class="form-inline">
+                <select class="form-control" name="student_id" required>
+                    <option value="">Choisir un étudiant…</option>
+                    {% for student in available_students %}
+                    <option value="{{ student.id }}">{{ student.name }} ({{ student.email }})</option>
+                    {% endfor %}
+                </select>
+                <button type="submit" class="btn btn-primary">Inscrire</button>
+            </div>
+        </form>
+    </div>
+    {% else %}
+    <div class="card-body" style="border-top:1px solid var(--border);">
+        <p class="text-muted">Tous les étudiants sont inscrits.
+            <a href="/manage_student/add/">Créer un nouvel étudiant</a>
+        </p>
+    </div>
+    {% endif %}
+</div>
+
+{% endif %}
+{% endblock %}

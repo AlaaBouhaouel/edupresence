@@ -1,0 +1,73 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EduPresence</title>
+    <link rel="icon" type="image/png" href="{% static 'img/logo/logo.png' %}">
+
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <style>
+        .hero {
+            min-height: 100vh;
+            background: var(--black);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 40px 20px;
+        }
+        .hero img { height: 64px; margin-bottom: 32px; }
+        .hero h1 {
+            font-size: 2.2rem;
+            font-weight: 700;
+            color: var(--white);
+            margin-bottom: 12px;
+        }
+        .hero h1 span { color: var(--primary); }
+        .hero p {
+            color: rgba(255,255,255,.55);
+            font-size: 1rem;
+            max-width: 380px;
+            margin-bottom: 36px;
+            line-height: 1.7;
+        }
+        .hero-features {
+            display: flex;
+            gap: 32px;
+            margin-bottom: 40px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        .hero-feature {
+            color: rgba(255,255,255,.6);
+            font-size: .85rem;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .hero-feature i { color: var(--primary); }
+    </style>
+</head>
+<body>
+<div class="hero">
+    <img src="{% static 'img/logo/white-bg.png' %}" alt="EduPresence">
+
+    <h1>Gestion de <span>présence</span><br>intelligente</h1>
+    <p>Suivi des présences par RFID pour enseignants et étudiants. Simple, rapide, fiable.</p>
+
+    <div class="hero-features">
+        <div class="hero-feature"><i class="fas fa-wifi"></i> RFID en temps réel</div>
+        <div class="hero-feature"><i class="fas fa-chalkboard-teacher"></i> Tableau de bord enseignant</div>
+        <div class="hero-feature"><i class="fas fa-chart-bar"></i> Suivi des absences</div>
+    </div>
+
+    <a href="/signin/" class="btn btn-primary" style="padding:12px 32px;font-size:1rem;">
+        <i class="fas fa-sign-in-alt"></i> Se connecter
+    </a>
+</div>
+</body>
+</html>
