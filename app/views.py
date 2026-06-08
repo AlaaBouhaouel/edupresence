@@ -396,31 +396,40 @@ def manage_classe(request, classe_id):
 
 
 def classe_register(request, classe_id):
+    _DAY_MAP = {0: 'MON', 1: 'TUE', 2: 'WED', 3: 'THU', 4: 'FRI', 5: 'SAT', 6: 'SUN'}
     classe = Class.objects.get(id=classe_id)
-    enrollments = Enrollment.objects.filter(classe=classe).select_related('student').order_by('student__name')
+    students = list(
+        Student.objects.filter(enrollment__classe=classe).order_by('name')
+    )
+    sessions = list(
+        AttendanceSession.objects.filter(classe=classe).order_by('date', 'start_time')
+    )
+    schedule_map = {
+        (s.teacher_id, s.day): s.end_time
+        for s in ClassSchedule.objects.filter(classe=classe)
+    }
+    for s in sessions:
+        day_code = _DAY_MAP.get(s.date.weekday())
+        s.scheduled_end = schedule_map.get((s.teacher_id, day_code))
+    presence_map = {
+        (p['student_id'], p['session_id']): p['status']
+        for p in Presence.objects.filter(session__classe=classe).values('student_id', 'session_id', 'status')
+    }
     rows = []
-    for i, enr in enumerate(enrollments, start=1):
-        presences = Presence.objects.filter(student=enr.student, session__classe=classe)
-        present = presences.filter(status='present').count()
-        absent = presences.filter(status='absent').count()
+    for i, student in enumerate(students, start=1):
+        cells = [presence_map.get((student.id, s.id)) for s in sessions]
+        present = cells.count('present')
+        absent = cells.count('absent')
         total = present + absent
-        rate = round(present / total * 100) if total else 0
-        absent_dates = list(
-            presences.filter(status='absent')
-            .select_related('session')
-            .order_by('session__date')
-            .values_list('session__date', flat=True)
-        )
         rows.append({
             'num': i,
-            'student': enr.student,
+            'student': student,
+            'cells': cells,
             'present': present,
             'absent': absent,
-            'total': total,
-            'rate': rate,
-            'absent_dates': absent_dates,
+            'rate': round(present / total * 100) if total else 0,
         })
-    return render(request, 'classe_register.html', {'classe': classe, 'rows': rows})
+    return render(request, 'classe_register.html', {'classe': classe, 'sessions': sessions, 'rows': rows})
 
 
 def add_classe(request):

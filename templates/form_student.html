@@ -55,15 +55,14 @@
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-app.js";
     import { getDatabase, ref, onValue, set } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-database.js";
-
     const app1 = initializeApp(
-    { databaseURL: "https://test-6fed4-default-rtdb.europe-west1.firebasedatabase.app/" },
-    "app1"
+        { databaseURL: "https://test-6fed4-default-rtdb.europe-west1.firebasedatabase.app" },
+        "app1"
     );
 
     const app2 = initializeApp(
-    { databaseURL: "https://stc2024-d1ba8-default-rtdb.europe-west1.firebasedatabase.app" },
-    "app2"
+        { databaseURL: "https://stc2024-d1ba8-default-rtdb.europe-west1.firebasedatabase.app" },
+        "app2"
     );
 
     const db1 = getDatabase(app1);
@@ -78,30 +77,27 @@
     indicator.style.display = 'inline-block';
 
     onValue(uidRef, snapshot => {
-    const uid = snapshot.val();
-    if (uid && uid !== '') {
-        uidField.value = uid;
-        indicator.style.display = 'none';
-        submitBtn.disabled = false;
-        set(uidRef, '');
-    }
+        const uid = snapshot.val();
+        if (uid && uid !== '') {
+            uidField.value = uid;
+            indicator.style.display = 'none';
+            submitBtn.disabled = false;
+            set(uidRef, '');
+        }
     });
 
     form.addEventListener('submit', async (e) => {
-    e.preventDefault();
+        e.preventDefault();
 
-    const uid = uidField.value.trim();
-    const name = document.querySelector('input[name="name"]').value.trim();
+        const uid = uidField.value.trim();
+        const name = document.querySelector('input[name="name"]').value.trim();
 
-    try {
-        await set(ref(db2, `Students/${uid}`), {
-        name: name
-        });
-
-        form.submit();
-    } catch (error) {
-        console.error("Firebase write failed:", error);
-    }
+        try {
+            await set(ref(db2, `Students/${uid}`), { name: name });
+            form.submit();
+        } catch (error) {
+            console.error("Firebase write failed:", error);
+        }
     });
     </script>
 

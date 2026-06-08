@@ -10,7 +10,8 @@
       "Bash(set DEBUG=True)",
       "Bash(set DATABASE_URL=sqlite:///db.sqlite3)",
       "Bash(python manage.py check --deploy)",
-      "Read(//c/Users/AlaBo/Downloads/**)"
+      "Read(//c/Users/AlaBo/Downloads/**)",
+      "Bash(grep -E \"^\\\\.env$|serviceAccountKey|db\\\\.sqlite3|^staticfiles|^\\\\.claude\")"
     ]
   }
 }

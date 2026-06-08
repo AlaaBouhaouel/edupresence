@@ -6,272 +6,235 @@
     <title>Registre – {{ classe.name }}</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <style>
-        :root {
-            --primary: #4f46e5;
-            --primary-light: #ede9fe;
-            --danger: #ef4444;
-            --success: #22c55e;
-            --warning: #f59e0b;
-            --border: #e5e7eb;
-            --text: #111827;
-            --text-muted: #6b7280;
-            --surface: #ffffff;
-            --bg: #f9fafb;
-            --radius: 8px;
-        }
-
         * { box-sizing: border-box; margin: 0; padding: 0; }
 
         body {
             font-family: 'Segoe UI', system-ui, sans-serif;
-            background: var(--bg);
-            color: var(--text);
-            padding: 32px;
+            background: #f3f4f6;
+            color: #111827;
+            padding: 28px 32px;
         }
 
-        .page-header {
+        /* ── HEADER ── */
+        .top-bar {
             display: flex;
-            align-items: flex-start;
+            align-items: flex-end;
             justify-content: space-between;
-            margin-bottom: 28px;
+            margin-bottom: 24px;
             flex-wrap: wrap;
-            gap: 16px;
+            gap: 12px;
         }
 
-        .page-header h1 {
-            font-size: 1.6rem;
-            font-weight: 700;
-            color: var(--primary);
-        }
-
-        .page-header .meta {
-            font-size: .9rem;
-            color: var(--text-muted);
-            margin-top: 4px;
-        }
-
-        .actions { display: flex; gap: 10px; align-items: center; }
-
-        .btn {
+        .back-link {
             display: inline-flex;
             align-items: center;
             gap: 6px;
-            padding: 8px 16px;
-            border-radius: var(--radius);
+            font-size: .82rem;
+            color: #6b7280;
+            text-decoration: none;
+            margin-bottom: 10px;
+        }
+        .back-link:hover { color: #4f46e5; }
+
+        h1 {
+            font-size: 1.45rem;
+            font-weight: 700;
+            color: #111827;
+        }
+        .meta { font-size: .82rem; color: #9ca3af; margin-top: 3px; }
+
+        .btn-print {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            padding: 9px 18px;
+            background: #4f46e5;
+            color: #fff;
+            border: none;
+            border-radius: 8px;
             font-size: .875rem;
             font-weight: 500;
             cursor: pointer;
-            text-decoration: none;
-            border: 1px solid transparent;
-            transition: opacity .15s;
         }
-        .btn:hover { opacity: .85; }
-        .btn-primary { background: var(--primary); color: #fff; }
-        .btn-outline { background: #fff; border-color: var(--border); color: var(--text); }
+        .btn-print:hover { background: #4338ca; }
 
-        .summary-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-            gap: 16px;
-            margin-bottom: 28px;
-        }
-
-        .stat-card {
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: var(--radius);
-            padding: 16px 20px;
-            text-align: center;
-        }
-
-        .stat-value { font-size: 1.8rem; font-weight: 700; color: var(--primary); }
-        .stat-label { font-size: .78rem; color: var(--text-muted); margin-top: 4px; text-transform: uppercase; letter-spacing: .04em; }
-
-        .card {
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: var(--radius);
-            overflow: hidden;
+        /* ── TABLE WRAPPER ── */
+        .table-wrap {
+            overflow-x: auto;
+            background: #fff;
+            border: 1px solid #e5e7eb;
+            border-radius: 10px;
         }
 
         table {
-            width: 100%;
             border-collapse: collapse;
-            font-size: .875rem;
+            min-width: 100%;
+            font-size: .82rem;
         }
 
-        thead tr { background: var(--bg); }
+        /* sticky student column */
+        th.col-student,
+        td.col-student {
+            position: sticky;
+            left: 0;
+            background: #fff;
+            z-index: 2;
+            min-width: 170px;
+            border-right: 2px solid #e5e7eb;
+        }
+        thead th.col-student { background: #f9fafb; z-index: 3; }
 
-        th {
-            padding: 10px 14px;
-            text-align: left;
-            font-size: .75rem;
-            font-weight: 600;
-            color: var(--text-muted);
+        /* sticky summary columns */
+        th.col-sum, td.col-sum {
+            position: sticky;
+            background: #f9fafb;
+            z-index: 2;
+            border-left: 2px solid #e5e7eb;
+        }
+        th.col-sum-1, td.col-sum-1 { right: 168px; }
+        th.col-sum-2, td.col-sum-2 { right: 84px; }
+        th.col-sum-3, td.col-sum-3 { right: 0; }
+
+        thead tr:first-child th {
+            background: #f9fafb;
+            padding: 10px 12px;
+            text-align: center;
+            font-size: .72rem;
+            font-weight: 700;
+            color: #374151;
             text-transform: uppercase;
-            letter-spacing: .05em;
-            border-bottom: 1px solid var(--border);
+            letter-spacing: .04em;
+            border-bottom: 1px solid #e5e7eb;
+            white-space: nowrap;
+        }
+
+        thead tr:last-child th {
+            background: #f9fafb;
+            padding: 6px 10px;
+            text-align: center;
+            font-size: .72rem;
+            color: #6b7280;
+            border-bottom: 2px solid #d1d5db;
+            white-space: nowrap;
         }
 
         td {
+            padding: 0;
+            border-bottom: 1px solid #f3f4f6;
+            text-align: center;
+            vertical-align: middle;
+        }
+
+        td.col-student {
             padding: 10px 14px;
-            border-bottom: 1px solid var(--border);
-            vertical-align: top;
+            text-align: left;
         }
 
-        tr:last-child td { border-bottom: none; }
+        .student-name { font-weight: 600; color: #111827; line-height: 1.3; }
+        .student-email { font-size: .74rem; color: #9ca3af; }
 
-        .badge {
-            display: inline-block;
-            padding: 2px 8px;
-            border-radius: 999px;
-            font-size: .75rem;
-            font-weight: 600;
-        }
-        .badge-success { background: #dcfce7; color: #16a34a; }
-        .badge-danger  { background: #fee2e2; color: #dc2626; }
-        .badge-muted   { background: var(--bg); color: var(--text-muted); }
-
-        .rate-bar-wrap {
+        /* P / A cells */
+        .cell {
             display: flex;
             align-items: center;
-            gap: 8px;
+            justify-content: center;
+            width: 100%;
+            height: 44px;
+            font-weight: 700;
+            font-size: .8rem;
+            letter-spacing: .03em;
         }
-        .rate-bar {
-            flex: 1;
-            height: 6px;
-            background: var(--border);
-            border-radius: 3px;
-            overflow: hidden;
-            min-width: 60px;
-        }
-        .rate-bar-fill {
-            height: 100%;
-            border-radius: 3px;
-            transition: width .3s;
-        }
+        .cell-p { background: #f0fdf4; color: #16a34a; }
+        .cell-a { background: #fef2f2; color: #dc2626; }
+        .cell-empty { color: #d1d5db; font-weight: 400; }
 
-        .absent-dates {
-            font-size: .78rem;
-            color: var(--text-muted);
-            line-height: 1.7;
-        }
+        tr:hover td.col-student,
+        tr:hover td:not(.col-sum) { background: #fafafa; }
 
-        .absent-dates .date-chip {
-            display: inline-block;
-            background: #fee2e2;
-            color: #dc2626;
-            border-radius: 4px;
-            padding: 1px 6px;
-            margin: 2px 2px 0 0;
-            font-size: .74rem;
+        /* summary cols */
+        td.col-sum {
+            padding: 0 12px;
+            height: 44px;
+            font-weight: 600;
+            font-size: .8rem;
         }
+        .sum-p { color: #16a34a; }
+        .sum-a { color: #dc2626; }
+        .sum-rate { color: #4f46e5; }
 
-        /* ── PRINT ──────────────────────────────────────────── */
+        /* date group separator */
+        .date-sep { border-left: 1px solid #e5e7eb; }
+
+        /* ── PRINT ── */
         @media print {
-            body { background: #fff; padding: 16px; }
-            .actions { display: none !important; }
-            .btn-back { display: none !important; }
-
-            .card { border: 1px solid #ccc; }
-            th, td { padding: 7px 10px; font-size: .8rem; }
-
-            .rate-bar-wrap .rate-bar { display: none; }
-
-            @page { size: A4; margin: 18mm 14mm; }
+            body { background: #fff; padding: 10px; }
+            .btn-print, .back-link { display: none !important; }
+            .table-wrap { border: none; border-radius: 0; overflow: visible; }
+            th.col-student, td.col-student,
+            th.col-sum, td.col-sum { position: static; }
+            @page { size: A4 landscape; margin: 12mm 10mm; }
         }
     </style>
 </head>
 <body>
 
-<div class="page-header">
+<div class="top-bar">
     <div>
-        <a href="/admin_home/" class="btn btn-outline btn-back" style="margin-bottom:12px;font-size:.82rem;">
-            <i class="fas fa-arrow-left"></i> Tableau de bord
-        </a>
-        <h1><i class="fas fa-clipboard-list" style="margin-right:8px;"></i>Registre – {{ classe.name }}</h1>
-        {% if classe.description %}
-        <p class="meta">{{ classe.description }}</p>
-        {% endif %}
-        <p class="meta" style="margin-top:4px;">Généré le {% now "d/m/Y" %}</p>
+        <a href="/admin_home/" class="back-link"><i class="fas fa-arrow-left"></i> Tableau de bord</a>
+        <h1>Registre — {{ classe.name }}</h1>
+        <p class="meta">{{ rows|length }} étudiant{{ rows|length|pluralize }} · Généré le {% now "d/m/Y" %}</p>
     </div>
-    <div class="actions">
-        <button onclick="window.print()" class="btn btn-primary">
-            <i class="fas fa-print"></i> Imprimer / PDF
-        </button>
-    </div>
+    <button class="btn-print" onclick="window.print()">
+        <i class="fas fa-print"></i> Imprimer / PDF
+    </button>
 </div>
 
-{% if rows %}
-<div class="summary-grid">
-    <div class="stat-card">
-        <div class="stat-value">{{ rows|length }}</div>
-        <div class="stat-label">Étudiants inscrits</div>
-    </div>
-</div>
-{% endif %}
-
-<div class="card">
+<div class="table-wrap">
     <table>
         <thead>
+            <!-- Row 1: dates -->
             <tr>
-                <th style="width:40px;">#</th>
-                <th>Étudiant</th>
-                <th style="width:80px;text-align:center;">Présences</th>
-                <th style="width:80px;text-align:center;">Absences</th>
-                <th style="width:160px;">Taux</th>
-                <th>Dates d'absence</th>
+                <th class="col-student" rowspan="2" style="text-align:left;">Étudiant</th>
+                {% for session in sessions %}
+                <th class="date-sep">{{ session.date|date:"d/m" }}</th>
+                {% empty %}
+                <th>—</th>
+                {% endfor %}
+            </tr>
+            <!-- Row 2: time slots -->
+            <tr>
+                {% for session in sessions %}
+                <th class="date-sep">
+                    {{ session.start_time|time:"G\hi" }}–{% if session.scheduled_end %}{{ session.scheduled_end|time:"G\hi" }}{% else %}?{% endif %}
+                </th>
+                {% endfor %}
             </tr>
         </thead>
         <tbody>
             {% for row in rows %}
             <tr>
-                <td class="badge badge-muted" style="font-size:.8rem;">{{ row.num }}</td>
-                <td>
-                    <div style="font-weight:600;">{{ row.student.name }}</div>
+                <td class="col-student">
+                    <div class="student-name">{{ row.student.name }}</div>
                     {% if row.student.email %}
-                    <div style="font-size:.78rem;color:var(--text-muted);">{{ row.student.email }}</div>
+                    <div class="student-email">{{ row.student.email }}</div>
                     {% endif %}
                 </td>
-                <td style="text-align:center;">
-                    <span class="badge badge-success">{{ row.present }}</span>
-                </td>
-                <td style="text-align:center;">
-                    {% if row.absent > 0 %}
-                    <span class="badge badge-danger">{{ row.absent }}</span>
+                {% for cell in row.cells %}
+                <td class="date-sep">
+                    {% if cell == 'present' %}
+                    <div class="cell cell-p">P</div>
+                    {% elif cell == 'absent' %}
+                    <div class="cell cell-a">A</div>
                     {% else %}
-                    <span class="badge badge-muted">0</span>
+                    <div class="cell cell-empty">·</div>
                     {% endif %}
                 </td>
-                <td>
-                    {% if row.total > 0 %}
-                    <div class="rate-bar-wrap">
-                        <div class="rate-bar">
-                            <div class="rate-bar-fill"
-                                 style="width:{{ row.rate }}%;background:{% if row.rate >= 80 %}var(--success){% elif row.rate >= 60 %}var(--warning){% else %}var(--danger){% endif %};">
-                            </div>
-                        </div>
-                        <span style="font-size:.8rem;font-weight:600;min-width:36px;">{{ row.rate }}%</span>
-                    </div>
-                    {% else %}
-                    <span class="badge badge-muted">—</span>
-                    {% endif %}
-                </td>
-                <td>
-                    {% if row.absent_dates %}
-                    <div class="absent-dates">
-                        {% for d in row.absent_dates %}
-                        <span class="date-chip">{{ d|date:"d/m/Y" }}</span>
-                        {% endfor %}
-                    </div>
-                    {% else %}
-                    <span style="font-size:.8rem;color:var(--text-muted);">Aucune absence</span>
-                    {% endif %}
-                </td>
+                {% endfor %}
+
             </tr>
             {% empty %}
             <tr>
-                <td colspan="6" style="text-align:center;padding:40px;color:var(--text-muted);">
+                <td colspan="99" style="padding:40px;text-align:center;color:#9ca3af;">
                     Aucun étudiant inscrit dans cette classe.
                 </td>
             </tr>
