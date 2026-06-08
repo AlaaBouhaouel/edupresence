@@ -4,7 +4,7 @@ import string
 from datetime import date as dt_date
 from urllib.parse import quote_plus
 from django.shortcuts import render, redirect
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponseForbidden
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
@@ -13,6 +13,13 @@ from django.urls import reverse
 from django.db import transaction
 from django.db.models import Count, Q
 from django.core.exceptions import ValidationError
+
+
+def csrf_failure(request, reason=''):
+    return HttpResponseForbidden(
+        render(request, 'csrf_failure.html', {'reason': reason}).content,
+        content_type='text/html',
+    )
 from .models import (
     Teacher, Class, ClassSchedule,
     Student, Enrollment, AttendanceSession, Presence
@@ -53,7 +60,7 @@ def sign_out(request):
 
 def _redirect_after_login(user):
     teacher = Teacher.objects.filter(user=user).first()
-    if teacher:
+    if teacher and teacher.id:
         return redirect('teacher_home', teacher_id=teacher.id)
     return redirect('admin_home')
 
@@ -101,17 +108,20 @@ def teacher_home(request, teacher_id):
     teacher = Teacher.objects.get(id=teacher_id)
     schedules = ClassSchedule.objects.filter(teacher=teacher).select_related('classe')
     classes_list = Class.objects.filter(teachers=teacher)
-    students_list = Student.objects.filter(
-        enrollment__classe__in=classes_list
-    ).annotate(
-        absence_count=Count('presence', filter=Q(presence__status='absent')),
-        presence_count=Count('presence', filter=Q(presence__status='present'))
-    ).distinct()
+    classes_with_students = []
+    for cls in classes_list:
+        students = Student.objects.filter(enrollment__classe=cls).annotate(
+            absence_count=Count('presence', filter=Q(presence__status='absent')),
+            presence_count=Count('presence', filter=Q(presence__status='present'))
+
+        )
+        classes_with_students.append({'classe': cls, 'students': students})
+
     context = {
         'teacher': teacher,
         'schedules': schedules,
-        'students': students_list,
-        'students_count': students_list.count(),
+        'classes_with_students': classes_with_students,
+        'students_count': Student.objects.filter(enrollment__classe__in=classes_list).distinct().count(),
         'classes_count': classes_list.count(),
     }
     return render(request, 'teacher_home.html', context)
@@ -225,6 +235,26 @@ def manage_student(request):
     return render(request, 'manage_student.html', context)
 
 
+def student_detail(request, student_id):
+    student = Student.objects.get(id=student_id)
+    enrollment = Enrollment.objects.filter(student=student).first()
+    presences = Presence.objects.filter(student=student).select_related('session__classe', 'session__teacher').order_by('-session__date')
+
+    if not request.user.is_staff:
+        teacher = Teacher.objects.filter(user=request.user).first()
+        if teacher:
+            presences = presences.filter(session__teacher=teacher)
+
+    context = {
+        'student': student,
+        'enrollment': enrollment,
+        'presences': presences,
+        'presence_count': presences.filter(status='present').count(),
+        'absence_count': presences.filter(status='absent').count(),
+    }
+    return render(request, 'student_detail.html', context)
+
+
 def add_student(request):
     if request.method == 'POST':
         uid = request.POST.get('uid', '').strip().upper()
@@ -297,26 +327,26 @@ def manage_classe(request, classe_id):
 
         elif action == 'add_teacher':
             teacher_id = request.POST.get('teacher_id')
-            day = request.POST.get('day')
-            start_time = request.POST.get('start_time')
-            end_time = request.POST.get('end_time')
-            if teacher_id and day and start_time and end_time:
-                try:
-                    ClassSchedule.objects.update_or_create(
-                        teacher=Teacher.objects.get(id=teacher_id),
-                        classe=classe,
-                        day=day,
-                        defaults={'start_time': start_time, 'end_time': end_time},
-                    )
-                except ValidationError as exc:
-                    message = exc.messages[0] if exc.messages else "Invalid teaching schedule."
-                    return _manage_classe_error_redirect(classe.id, message)
+            days_list   = request.POST.getlist('days[]')
+            starts_list = request.POST.getlist('start_times[]')
+            ends_list   = request.POST.getlist('end_times[]')
+            if teacher_id and days_list:
+                teacher_obj = Teacher.objects.get(id=teacher_id)
+                for day, start, end in zip(days_list, starts_list, ends_list):
+                    if day and start and end:
+                        try:
+                            s = ClassSchedule(teacher=teacher_obj, classe=classe,
+                                              day=day, start_time=start, end_time=end)
+                            s.full_clean()
+                            s.save()
+                        except ValidationError as exc:
+                            msg = exc.messages[0] if exc.messages else "Horaire invalide."
+                            return _manage_classe_error_redirect(classe.id, msg)
 
         elif action == 'remove_teacher':
             ClassSchedule.objects.filter(
+                id=request.POST.get('schedule_id'),
                 classe=classe,
-                teacher_id=request.POST.get('teacher_id'),
-                day=request.POST.get('day'),
             ).delete()
 
         elif action == 'add_student':
@@ -363,6 +393,34 @@ def manage_classe(request, classe_id):
 
     
     return render(request, 'manage_classe.html', context)
+
+
+def classe_register(request, classe_id):
+    classe = Class.objects.get(id=classe_id)
+    enrollments = Enrollment.objects.filter(classe=classe).select_related('student').order_by('student__name')
+    rows = []
+    for i, enr in enumerate(enrollments, start=1):
+        presences = Presence.objects.filter(student=enr.student, session__classe=classe)
+        present = presences.filter(status='present').count()
+        absent = presences.filter(status='absent').count()
+        total = present + absent
+        rate = round(present / total * 100) if total else 0
+        absent_dates = list(
+            presences.filter(status='absent')
+            .select_related('session')
+            .order_by('session__date')
+            .values_list('session__date', flat=True)
+        )
+        rows.append({
+            'num': i,
+            'student': enr.student,
+            'present': present,
+            'absent': absent,
+            'total': total,
+            'rate': rate,
+            'absent_dates': absent_dates,
+        })
+    return render(request, 'classe_register.html', {'classe': classe, 'rows': rows})
 
 
 def add_classe(request):

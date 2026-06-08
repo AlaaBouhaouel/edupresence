@@ -1,0 +1,131 @@
+{% extends 'base.html' %}
+{% block title %}{{ student.name }} – EduPresence{% endblock %}
+
+{% block content %}
+<style>
+@media print {
+    .navbar, .page-header-row .d-flex { display: none; }
+    body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    @page { size: A4; margin: 15mm; scale: 80%; }
+}
+</style>
+{% if user.is_authenticated %}
+
+<div class="page-header-row">
+    <div class="page-header mb-0">
+        <h1><i class="fas fa-user-graduate"></i> {{ student.name }}</h1>
+        <p class="text-muted">Fiche étudiant</p>
+    </div>
+    <div class="d-flex gap-2">
+        {% if user.is_staff %}
+        <a href="/manage_student/{{ student.id }}/edit/" class="btn btn-outline btn-sm">
+            <i class="fas fa-edit"></i> Modifier
+        </a>
+        {% endif %}
+        <a href="#" onclick="window.print();return false;" class="btn btn-outline btn-sm">
+            <i class="fas fa-print"></i> Print
+        </a>
+        <a href="/manage_student/" class="btn btn-outline btn-sm">
+            <i class="fas fa-arrow-left"></i> Retour
+        </a>
+    </div>
+</div>
+
+<!-- Info card -->
+<div class="card">
+    <div class="card-header">
+        <h2><i class="fas fa-id-card"></i> Informations</h2>
+    </div>
+    <div style="padding:20px;display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+        <div>
+            <div class="text-muted" style="font-size:.8rem;margin-bottom:4px;">Nom complet</div>
+            <div class="fw-bold">{{ student.name }}</div>
+        </div>
+        <div>
+            <div class="text-muted" style="font-size:.8rem;margin-bottom:4px;">Email</div>
+            <div>{% if student.email %}{{ student.email }}{% else %}<span class="text-muted">—</span>{% endif %}</div>
+        </div>
+        <div>
+            <div class="text-muted" style="font-size:.8rem;margin-bottom:4px;">Nom du parent</div>
+            <div>{% if student.parent_name %}{{ student.parent_name }}{% else %}<span class="text-muted">—</span>{% endif %}</div>
+        </div>
+        <div>
+            <div class="text-muted" style="font-size:.8rem;margin-bottom:4px;">Téléphone parent</div>
+            <div>{% if student.parent_num %}{{ student.parent_num }}{% else %}<span class="text-muted">—</span>{% endif %}</div>
+        </div>
+        <div>
+            <div class="text-muted" style="font-size:.8rem;margin-bottom:4px;">UID (carte RFID)</div>
+            <div>{% if student.uid %}<code>{{ student.uid }}</code>{% else %}<span class="text-muted">—</span>{% endif %}</div>
+        </div>
+        <div>
+            <div class="text-muted" style="font-size:.8rem;margin-bottom:4px;">Classe</div>
+            <div>
+                {% if enrollment %}
+                    <a href="/manage_classe/{{ enrollment.classe.id }}/">{{ enrollment.classe.name }}</a>
+                {% else %}
+                    <span class="text-muted">—</span>
+                {% endif %}
+            </div>
+        </div>
+        <div>
+            <div class="text-muted" style="font-size:.8rem;margin-bottom:4px;">Date d'inscription</div>
+            <div>{{ student.date_joined }}</div>
+        </div>
+    </div>
+</div>
+
+<!-- Attendance stats -->
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-value" style="color:var(--success);">{{ presence_count }}</div>
+        <div class="stat-label">Présences</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value" style="color:var(--danger);">{{ absence_count }}</div>
+        <div class="stat-label">Absences</div>
+    </div>
+</div>
+
+<!-- Attendance history -->
+<div class="card">
+    <div class="card-header">
+        <h2><i class="fas fa-clipboard-list"></i> Historique des présences</h2>
+    </div>
+    <div class="table-responsive">
+        <table>
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Classe</th>
+                    <th>Enseignant</th>
+                    <th>Statut</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for presence in presences %}
+                <tr>
+                    <td>{{ presence.session.date }}</td>
+                    <td>{{ presence.session.classe.name }}</td>
+                    <td>{{ presence.session.teacher.name }} – {{ presence.session.teacher.matiere }}</td>
+                    <td>
+                        {% if presence.status == 'present' %}
+                            <span class="badge badge-success"><i class="fas fa-check"></i> Présent</span>
+                        {% else %}
+                            <span class="badge badge-danger"><i class="fas fa-times"></i> Absent</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="3" style="text-align:center;padding:32px;" class="text-muted">
+                        Aucun historique de présence.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% endif %}
+{% endblock %}

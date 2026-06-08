@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python -c ' *)",
+      "PowerShell(cd \"c:\\\\Users\\\\AlaBo\\\\edupresence\"; $env:DJANGO_SETTINGS_MODULE=\"edupresence.settings\"; python -c \"import django; django.setup\\(\\); print\\('OK'\\)\" 2>&1)",
+      "PowerShell(cd \"c:\\\\Users\\\\AlaBo\\\\edupresence\"; Remove-Item \"db.sqlite3\" -Force -ErrorAction SilentlyContinue; Get-ChildItem \"app\\\\migrations\" | Where-Object { $_.Name -ne \"__init__.py\" } | Remove-Item -Force; python manage.py makemigrations 2>&1; python manage.py migrate 2>&1)",
+      "Bash(Get-ChildItem -Path \"c:\\\\Users\\\\AlaBo\\\\edupresence\" -Force)",
+      "Bash(Select-Object Name, FullName, PSIsContainer)",
+      "Bash(set SECRET_KEY=dummy-key-for-check)",
+      "Bash(set DEBUG=True)",
+      "Bash(set DATABASE_URL=sqlite:///db.sqlite3)",
+      "Bash(python manage.py check --deploy)",
+      "Read(//c/Users/AlaBo/Downloads/**)"
+    ]
+  }
+}

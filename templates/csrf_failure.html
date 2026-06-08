@@ -1,0 +1,46 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Erreur de sécurité – EduPresence</title>
+    <link rel="icon" type="image/png" href="{% static 'img/logo/logo.png' %}">
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+</head>
+<body>
+<div class="auth-wrapper">
+    <div class="auth-card" style="text-align:center;">
+
+        <div class="auth-logo">
+            <img src="{% static 'img/logo/dark-bg.png' %}" alt="EduPresence">
+        </div>
+
+        <div style="font-size:3rem;margin:16px 0 8px;">
+            <i class="fas fa-shield-alt" style="color:var(--danger);"></i>
+        </div>
+        <h2 style="font-size:1.2rem;font-weight:600;margin-bottom:8px;">Erreur de vérification CSRF</h2>
+        <p style="color:var(--text-muted);font-size:.9rem;margin-bottom:8px;">
+            La soumission du formulaire a été bloquée pour des raisons de sécurité.
+            Cela peut arriver si votre session a expiré ou si la page est restée ouverte trop longtemps.
+        </p>
+        {% if reason %}
+        <p style="font-size:.8rem;color:var(--text-muted);margin-bottom:20px;font-style:italic;">
+            Détail : {{ reason }}
+        </p>
+        {% endif %}
+
+        <div style="display:flex;flex-direction:column;gap:10px;">
+            <button onclick="history.back()" class="btn btn-primary" style="justify-content:center;cursor:pointer;border:none;width:100%;">
+                <i class="fas fa-redo"></i>&nbsp; Réessayer
+            </button>
+            <a href="/signin/" class="btn btn-outline" style="justify-content:center;">
+                <i class="fas fa-sign-in-alt"></i>&nbsp; Se reconnecter
+            </a>
+        </div>
+
+    </div>
+</div>
+</body>
+</html>

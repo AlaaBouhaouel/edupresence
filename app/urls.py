@@ -28,10 +28,12 @@ urlpatterns = [
     # Student CRUD
     path('manage_student/', views.manage_student, name='manage_student'),
     path('manage_student/add/', views.add_student, name='add_student'),
+    path('manage_student/<int:student_id>/', views.student_detail, name='student_detail'),
     path('manage_student/<int:student_id>/edit/', views.edit_student, name='edit_student'),
     path('manage_student/<int:student_id>/delete/', views.delete_student, name='delete_student'),
 
     # Classe CRUD
+    path('classe/<int:classe_id>/register/', views.classe_register, name='classe_register'),
     path('manage_classe/<int:classe_id>/', views.manage_classe, name='manage_classe'),
     path('manage_classe/add/', views.add_classe, name='add_classe'),
     path('manage_classe/<int:classe_id>/edit/', views.edit_classe, name='edit_classe'),

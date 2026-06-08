@@ -1,3 +1,5 @@
+import json
+import os
 import firebase_admin
 from firebase_admin import credentials, db
 from django.conf import settings
@@ -6,11 +8,18 @@ from pathlib import Path
 
 def get_db():
     if not firebase_admin._apps:
-        service_account_path = Path(settings.BASE_DIR) / 'serviceAccountKey.json'
-        if not service_account_path.exists():
-            return None
         try:
-            cred = credentials.Certificate(str(service_account_path))
+            # Prefer JSON env variable (production / Railway)
+            service_account_json = os.environ.get('FIREBASE_SERVICE_ACCOUNT_JSON')
+            if service_account_json:
+                cred = credentials.Certificate(json.loads(service_account_json))
+            else:
+                # Fallback: read from file (local development)
+                service_account_path = Path(settings.BASE_DIR) / 'serviceAccountKey.json'
+                if not service_account_path.exists():
+                    return None
+                cred = credentials.Certificate(str(service_account_path))
+
             firebase_admin.initialize_app(cred, {
                 'databaseURL': settings.FIREBASE_DATABASE_URL
             })

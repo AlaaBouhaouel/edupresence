@@ -132,6 +132,10 @@ FIREBASE_DATABASE_URL = config(
     default='https://stc2024-d1ba8-default-rtdb.europe-west1.firebasedatabase.app/',
 )
 
+# --- Error handlers ----------------------------------------------------------
+
+CSRF_FAILURE_VIEW = 'app.views.csrf_failure'
+
 # --- Misc --------------------------------------------------------------------
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'

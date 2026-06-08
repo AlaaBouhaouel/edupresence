@@ -54,23 +54,34 @@
         <h2><i class="fas fa-user-graduate"></i> Mes étudiants</h2>
     </div>
     <div class="table-responsive">
-        <table>
-            <thead>
-                <tr><th>Nom</th><th>Email</th><th>Présences</th><th>Absences</th></tr>
-            </thead>
-            <tbody>
-                {% for student in students %}
-                <tr>
-                    <td class="fw-bold">{{ student.name }}</td>
-                    <td class="text-muted">{{ student.email }}</td>
-                    <td><span class="badge badge-success">{{ student.presence_count }}</span></td>
-                    <td><span class="badge badge-danger">{{ student.absence_count }}</span></td>
-                </tr>
+            <table>
+                <thead>
+                    <tr><th>Nom</th><th>Email</th><th>Présences</th><th>Absences</th></tr>
+                </thead>
+                <tbody>
+                {% for group in classes_with_students %}
+                    <tr>
+                        <td colspan="4" style="background:var(--primary-light);color:var(--primary-dark);font-weight:700;padding:10px 16px;letter-spacing:.3px;">
+                            <i class="fas fa-users"></i>&nbsp; {{ group.classe.name }}
+                        </td>
+                    </tr>
+                    {% for student in group.students %}
+                        <tr>
+                            <td class="fw-bold" style="cursor:pointer;" onclick="window.location='/manage_student/{{ student.id }}/'">{{ student.name }}</td>
+                            <td class="text-muted">{{ student.email }}</td>
+                            <td><span class="badge badge-success">{{ student.presence_count }}</span></td>
+                            <td><span class="badge badge-danger">{{ student.absence_count }}</span></td>
+                        </tr>
+                    {% empty %}
+                        <tr><td colspan="4" style="text-align:center;padding:20px;" class="text-muted">Aucun étudiant dans cette classe.</td></tr>
+                    {% endfor %}
                 {% empty %}
-                <tr><td colspan="4" style="text-align:center;padding:32px;" class="text-muted">Aucun étudiant.</td></tr>
+                    <tr><td colspan="4" style="text-align:center;padding:32px;" class="text-muted">Aucune classe assignée.</td></tr>
                 {% endfor %}
-            </tbody>
-        </table>
+                </tbody>
+            </table>
+        
+
     </div>
 </div>
 

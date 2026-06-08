@@ -54,8 +54,11 @@
                         {% endfor %}
                     </td>
                     <td><span class="badge badge-primary">{{ classe.enrollment_set.count }}</span></td>
-                    <td>
-                        <a href="/manage_classe/{{ classe.id }}/" class="btn btn-outline btn-sm btn-icon">
+                    <td style="display:flex;gap:6px;align-items:center;">
+                        <a href="/classe/{{ classe.id }}/register/" class="btn btn-outline btn-sm btn-icon" title="Registre des absences">
+                            <i class="fas fa-clipboard-list"></i>
+                        </a>
+                        <a href="/manage_classe/{{ classe.id }}/" class="btn btn-outline btn-sm btn-icon" title="Gérer">
                             <i class="fas fa-cog"></i>
                         </a>
                     </td>
@@ -137,7 +140,7 @@
             </thead>
             <tbody>
                 {% for student in students %}
-                <tr>
+                <tr onclick="window.location='/manage_student/{{ student.id }}/'" style="cursor:pointer;">
                     <td class="fw-bold">{{ student.name }}</td>
                     <td class="text-muted">{{ student.email }}</td>
                     <td>

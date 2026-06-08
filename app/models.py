@@ -42,7 +42,7 @@ class ClassSchedule(models.Model):
     end_time = models.TimeField()
 
     class Meta:
-        unique_together = ['teacher', 'classe', 'day']
+        pass
 
     def clean(self):
         # During partial object creation (before form fields are assigned),
@@ -87,6 +87,8 @@ class Student(models.Model):
     uid = models.CharField(max_length=100, unique=True, null=True, blank=True)
     name = models.CharField(max_length=100)
     email = models.EmailField(blank=True)
+    parent_name = models.CharField(blank=False, default='')
+    parent_num = models.CharField(blank=False, default='')
     date_joined = models.DateField(default=timezone.now)
 
     def __str__(self):

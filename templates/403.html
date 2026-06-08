@@ -1,0 +1,33 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Accès refusé – EduPresence</title>
+    <link rel="icon" type="image/png" href="{% static 'img/logo/logo.png' %}">
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+</head>
+<body>
+<div class="auth-wrapper">
+    <div class="auth-card" style="text-align:center;">
+
+        <div class="auth-logo">
+            <img src="{% static 'img/logo/dark-bg.png' %}" alt="EduPresence">
+        </div>
+
+        <div style="font-size:4rem;font-weight:800;color:var(--danger);line-height:1;margin:16px 0 8px;">403</div>
+        <h2 style="font-size:1.2rem;font-weight:600;margin-bottom:8px;">Accès refusé</h2>
+        <p style="color:var(--text-muted);font-size:.9rem;margin-bottom:24px;">
+            Vous n'avez pas les permissions nécessaires pour accéder à cette page.
+        </p>
+
+        <a href="/" class="btn btn-primary" style="justify-content:center;">
+            <i class="fas fa-home"></i>&nbsp; Retour à l'accueil
+        </a>
+
+    </div>
+</div>
+</body>
+</html>

@@ -18,7 +18,7 @@
         <table>
             <thead>
                 <tr>
-                    <th>UID</th><th>Nom</th><th>Email</th><th>Classe</th><th>Actions</th>
+                    <th>UID</th><th>Nom</th><th>Email</th><th>Parent Number</th><th>Classe</th><th>Actions</th>
                 </tr>
             </thead>
             <tbody>
@@ -27,6 +27,7 @@
                     <td><code>{% if student.uid %}{{ student.uid }}{% else %}<span class="text-muted">—</span>{% endif %}</code></td>
                     <td class="fw-bold">{{ student.name }}</td>
                     <td class="text-muted">{{ student.email }}</td>
+                    <td class="text-muted"> {{ student.parent_num }}</td>
                     <td>
                         {% with student.enrollment_set.first as enroll %}
                             {% if enroll %}

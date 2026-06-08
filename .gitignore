@@ -30,6 +30,9 @@ media/
 serviceAccountKey.json
 firebase_credentials.json
 
+# Claude Code local settings
+.claude/
+
 # IDE
 .vscode/
 .idea/

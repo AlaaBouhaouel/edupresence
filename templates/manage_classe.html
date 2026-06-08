@@ -75,8 +75,7 @@
                         <form method="post" style="display:inline">
                             {% csrf_token %}
                             <input type="hidden" name="action" value="remove_teacher">
-                            <input type="hidden" name="teacher_id" value="{{ schedule.teacher.id }}">
-                            <input type="hidden" name="day" value="{{ schedule.day }}">
+                            <input type="hidden" name="schedule_id" value="{{ schedule.id }}">
                             <button type="submit" class="btn btn-danger btn-sm btn-icon"
                                     onclick="return confirm('Retirer {{ schedule.teacher.name }} ?')">
                                 <i class="fas fa-times"></i>
@@ -90,33 +89,199 @@
             </tbody>
         </table>
     </div>
-    {% if available_teachers %}
     <div class="card-body" style="border-top:1px solid var(--border);">
-        <p class="fw-bold" style="margin-bottom:12px;">Ajouter un enseignant</p>
-        <form method="post">
-            {% csrf_token %}
-            <input type="hidden" name="action" value="add_teacher">
-            <div class="form-inline">
-                <select class="form-control" name="teacher_id" required>
-                    <option value="">Enseignant…</option>
-                    {% for teacher in available_teachers %}
-                    <option value="{{ teacher.id }}">{{ teacher.name }} ({{ teacher.matiere }})</option>
-                    {% endfor %}
-                </select>
-                <select class="form-control" name="day" required>
-                    <option value="">Jour…</option>
-                    {% for code, label in days %}
-                    <option value="{{ code }}">{{ label }}</option>
-                    {% endfor %}
-                </select>
-                <input class="form-control" type="time" name="start_time" placeholder="Début" required>
-                <input class="form-control" type="time" name="end_time" placeholder="Fin" required>
-                <button type="submit" class="btn btn-primary">Ajouter</button>
-            </div>
-        </form>
+        <button type="button" onclick="openDrawer()" class="btn btn-primary btn-sm">
+            <i class="fas fa-clock"></i> Planifier les horaires
+        </button>
     </div>
-    {% endif %}
 </div>
+
+<!-- ── SCHEDULE DRAWER ───────────────────────────────────────────────────── -->
+<div id="drawer-overlay" onclick="closeDrawer()"
+     style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:300;"></div>
+
+<div id="schedule-drawer"
+     style="position:fixed;top:0;right:0;height:100vh;width:400px;max-width:100vw;
+            background:var(--surface);box-shadow:-4px 0 24px rgba(0,0,0,.12);
+            z-index:301;display:flex;flex-direction:column;
+            transform:translateX(100%);transition:transform .28s ease;">
+
+    <!-- Header -->
+    <div style="display:flex;align-items:center;justify-content:space-between;
+                padding:18px 20px;border-bottom:1px solid var(--border);">
+        <h5 style="margin:0;font-size:1rem;font-weight:600;display:flex;align-items:center;gap:8px;">
+            <i class="fas fa-clock" style="color:var(--primary);"></i> Planifier les horaires
+        </h5>
+        <button type="button" onclick="closeDrawer()"
+                style="background:none;border:none;cursor:pointer;padding:4px;border-radius:var(--radius);color:var(--text-muted);"
+                onmouseover="this.style.background='var(--bg)'" onmouseout="this.style.background='none'">
+            <i class="fas fa-times" style="font-size:1.1rem;"></i>
+        </button>
+    </div>
+
+    <!-- Form -->
+    <form method="post" id="drawer-form" style="display:flex;flex-direction:column;flex:1;overflow:hidden;">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="add_teacher">
+
+        <div style="flex:1;overflow-y:auto;padding:20px;">
+
+            <!-- Teacher select -->
+            <div class="form-group" style="margin-bottom:20px;">
+                <label style="font-weight:600;">Enseignant</label>
+                <select class="form-control" name="teacher_id" required>
+                    <option value="">Choisir un enseignant…</option>
+                    {% for teacher in available_teachers %}
+                    <option value="{{ teacher.id }}">{{ teacher.name }} — {{ teacher.matiere }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div style="border-top:1px solid var(--border);padding-top:16px;margin-bottom:12px;">
+                <p style="font-size:.8rem;color:var(--text-muted);margin-bottom:12px;">
+                    Cochez les jours et définissez les horaires. La durée calcule l'heure de fin automatiquement.
+                </p>
+            </div>
+
+            <!-- Day rows -->
+            {% for code, label in days %}
+            <div class="drawer-day-row" style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">
+                <label style="display:flex;align-items:center;gap:6px;min-width:90px;cursor:pointer;font-size:.9rem;font-weight:500;">
+                    <input type="checkbox" class="day-check" data-row="{{ code }}"
+                           onchange="toggleRow('{{ code }}')"
+                           style="width:16px;height:16px;accent-color:var(--primary);cursor:pointer;">
+                    {{ label }}
+                </label>
+                <div id="row-{{ code }}" style="display:none;display:none;align-items:center;gap:8px;flex:1;">
+                    <div style="position:relative;flex:1;">
+                        <input type="time" id="start-{{ code }}" class="form-control"
+                               style="width:100%;font-size:.85rem;padding:6px 8px;"
+                               onfocus="showDayPresets('{{ code }}')"
+                               oninput="calcEnd('{{ code }}')" placeholder="Début">
+                        <div id="presets-{{ code }}"
+                             style="display:none;position:absolute;top:100%;left:0;z-index:400;
+                                    background:var(--surface);border:1px solid var(--border);
+                                    border-radius:var(--radius);box-shadow:var(--shadow);
+                                    width:80px;max-height:180px;overflow-y:auto;margin-top:2px;">
+                            <div onclick="pickTime('{{ code }}','08:00')" class="preset-item">08:00</div>
+                            <div onclick="pickTime('{{ code }}','08:30')" class="preset-item">08:30</div>
+                            <div onclick="pickTime('{{ code }}','09:00')" class="preset-item">09:00</div>
+                            <div onclick="pickTime('{{ code }}','09:30')" class="preset-item">09:30</div>
+                            <div onclick="pickTime('{{ code }}','10:00')" class="preset-item">10:00</div>
+                            <div onclick="pickTime('{{ code }}','10:30')" class="preset-item">10:30</div>
+                            <div onclick="pickTime('{{ code }}','11:00')" class="preset-item">11:00</div>
+                            <div onclick="pickTime('{{ code }}','11:30')" class="preset-item">11:30</div>
+                            <div onclick="pickTime('{{ code }}','13:00')" class="preset-item">13:00</div>
+                            <div onclick="pickTime('{{ code }}','13:30')" class="preset-item">13:30</div>
+                            <div onclick="pickTime('{{ code }}','14:00')" class="preset-item">14:00</div>
+                            <div onclick="pickTime('{{ code }}','14:30')" class="preset-item">14:30</div>
+                            <div onclick="pickTime('{{ code }}','15:00')" class="preset-item">15:00</div>
+                            <div onclick="pickTime('{{ code }}','16:00')" class="preset-item">16:00</div>
+                            <div onclick="pickTime('{{ code }}','17:00')" class="preset-item">17:00</div>
+                            <div onclick="pickTime('{{ code }}','18:00')" class="preset-item">18:00</div>
+                        </div>
+                    </div>
+                    <select id="dur-{{ code }}" class="form-control"
+                            style="width:80px;font-size:.85rem;padding:6px 8px;"
+                            onchange="calcEnd('{{ code }}')">
+                        <option value="60">1h</option>
+                        <option value="90" selected>1h30</option>
+                        <option value="120">2h</option>
+                        <option value="150">2h30</option>
+                        <option value="180">3h</option>
+                    </select>
+                    <input type="time" id="end-{{ code }}" class="form-control"
+                           style="width:100%;font-size:.85rem;padding:6px 8px;" placeholder="Fin" readonly>
+                </div>
+                <!-- hidden POST fields, populated on submit -->
+                <input type="hidden" name="days[]"        id="hday-{{ code }}"  disabled>
+                <input type="hidden" name="start_times[]" id="hstart-{{ code }}" disabled>
+                <input type="hidden" name="end_times[]"   id="hend-{{ code }}"  disabled>
+            </div>
+            {% endfor %}
+
+        </div>
+
+        <!-- Footer -->
+        <div style="padding:16px 20px;border-top:1px solid var(--border);display:flex;gap:10px;">
+            <button type="button" onclick="closeDrawer()" class="btn btn-outline" style="flex:1;">Annuler</button>
+            <button type="submit" onclick="prepareSubmit(event)" class="btn btn-primary" style="flex:1;">
+                <i class="fas fa-save"></i> Enregistrer
+            </button>
+        </div>
+    </form>
+</div>
+
+<style>
+.preset-item {
+    padding: 6px 12px;
+    cursor: pointer;
+    font-size: .82rem;
+}
+.preset-item:hover { background: var(--primary-light); }
+</style>
+
+<script>
+function openDrawer() {
+    document.getElementById('schedule-drawer').style.transform = 'translateX(0)';
+    document.getElementById('drawer-overlay').style.display = 'block';
+}
+function closeDrawer() {
+    document.getElementById('schedule-drawer').style.transform = 'translateX(100%)';
+    document.getElementById('drawer-overlay').style.display = 'none';
+}
+function toggleRow(code) {
+    const row = document.getElementById('row-' + code);
+    const checked = document.querySelector('[data-row="' + code + '"]').checked;
+    row.style.display = checked ? 'flex' : 'none';
+}
+function showDayPresets(code) {
+    document.querySelectorAll('[id^="presets-"]').forEach(el => {
+        if (el.id !== 'presets-' + code) el.style.display = 'none';
+    });
+    document.getElementById('presets-' + code).style.display = 'block';
+}
+function pickTime(code, val) {
+    document.getElementById('start-' + code).value = val;
+    document.getElementById('presets-' + code).style.display = 'none';
+    calcEnd(code);
+}
+function calcEnd(code) {
+    const start = document.getElementById('start-' + code).value;
+    const mins  = parseInt(document.getElementById('dur-' + code).value);
+    if (!start) return;
+    const [h, m] = start.split(':').map(Number);
+    const total  = h * 60 + m + mins;
+    document.getElementById('end-' + code).value =
+        String(Math.floor(total / 60) % 24).padStart(2,'0') + ':' +
+        String(total % 60).padStart(2,'0');
+}
+function prepareSubmit(e) {
+    const codes = ['MON','TUE','WED','THU','FRI','SAT'];
+    let any = false;
+    codes.forEach(code => {
+        const checked = document.querySelector('[data-row="' + code + '"]').checked;
+        const start   = document.getElementById('start-' + code).value;
+        const end     = document.getElementById('end-' + code).value;
+        if (checked && start && end) {
+            document.getElementById('hday-'   + code).value   = code;
+            document.getElementById('hstart-' + code).value   = start;
+            document.getElementById('hend-'   + code).value   = end;
+            document.getElementById('hday-'   + code).disabled = false;
+            document.getElementById('hstart-' + code).disabled = false;
+            document.getElementById('hend-'   + code).disabled = false;
+            any = true;
+        }
+    });
+    if (!any) { e.preventDefault(); alert('Cochez au moins un jour avec des horaires.'); }
+}
+document.addEventListener('click', function(e) {
+    if (!e.target.closest('[id^="presets-"]') && !e.target.closest('input[type="time"]')) {
+        document.querySelectorAll('[id^="presets-"]').forEach(el => el.style.display = 'none');
+    }
+});
+</script>
+
 
 <!-- Students -->
 <div class="card">
